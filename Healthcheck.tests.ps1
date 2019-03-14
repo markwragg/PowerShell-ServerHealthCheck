@@ -30,7 +30,7 @@ Describe "Server Health -- $Env:COMPUTERNAME" {
         $Processors = Get-WmiObject Win32_Processor
 
         ForEach ($Processor in $Processors) {
-            It "$($Processor.Name) should have less than 90% CPU load" {
+            It "$($Processor.Name) should have less than 95% CPU load" {
                 $Processor.LoadPercentage | Should Not BeGreaterThan 95
             }
         }
