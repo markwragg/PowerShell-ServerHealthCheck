@@ -46,6 +46,28 @@ Describe "Server Health -- $Env:COMPUTERNAME" {
         }
     }
 
+    Context "Network Health" {
+        $NetworkConfig = Get-wmiObject Win32_networkAdapterConfiguration | Where-Object { $_.IPEnabled }
+
+        ForEach ($DNSServer in $NetworkConfig.DNSServerSearchOrder) {
+            It "Should be able to resolve google.com in DNS via server $DNSServer" {
+                (Resolve-DnsName -Name google.com -Server $DNSServer).Count | Should BeGreaterThan 0
+            }
+        }
+
+        It "Should be able to connect to google.com via HTTP" {
+            (Test-NetConnection google.com -CommonTCPPort HTTP).TcpTestSucceeded | Should Be $true
+        }
+
+        ForEach ($DNSDomainSuffix in $NetworkConfig.DNSDomainSuffixSearchOrder) {
+            It "Should be able to resolve the DNS Domain suffix $DNSDomainSuffix" {
+                (Resolve-DnsName -Name $DNSDomainSuffix).Count | Should BeGreaterThan 0
+            }
+        }
+        
+
+    }
+
     Context "Service Health" {
 
         $Services = Get-WmiObject -Query "Select * From Win32_Service Where StartMode='Auto'" | Where-Object { -not ($_.State -eq 'Stopped' -And $_.ExitCode -eq 0) }
